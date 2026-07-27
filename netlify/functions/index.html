@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L-Lawliet Mastermind AI Command Center</title>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #0b0f19; color: #e2e8f0; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        header { background-color: #111827; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00f2fe; }
+        header h1 { margin: 0; font-size: 1.1rem; color: #00f2fe; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+        .msg { max-width: 85%; padding: 12px 16px; border-radius: 12px; line-height: 1.5; font-size: 0.95rem; white-space: pre-wrap; }
+        .user-msg { align-self: flex-end; background: linear-gradient(135deg, #0284c7, #2563eb); color: #fff; }
+        .ai-msg { align-self: flex-start; background-color: #1f2937; border: 1px solid #374151; color: #f3f4f6; }
+        #controls { display: flex; padding: 12px; background-color: #111827; border-top: 1px solid #1f2937; gap: 8px; }
+        #user-input { flex: 1; background-color: #030712; border: 1px solid #374151; color: #fff; padding: 10px 14px; border-radius: 20px; outline: none; }
+        .btn-send { background: linear-gradient(135deg, #00f2fe, #4facfe); color: #000; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🕵️‍♂️ L-LAWLIET TACTICAL AI</h1>
+    </header>
+
+    <div id="chat-box">
+        <div class="msg ai-msg">স্বাগতম, অফিসার। আমি L-Lawliet। কেসের আলামত বা যেকোনো ফাইল প্রদান করুন, এআই ম্যানিপুলেটেড ভিডিও শনাক্তকরণ ও অপরাধীর পরবর্তী চালের অ্যানালাইসিস শুরু করা হচ্ছে...</div>
+    </div>
+
+    <div id="controls">
+        <input type="text" id="user-input" placeholder="তদন্তের বিবরণ বা অপরাধের তথ্য লিখুন..." onkeypress="if(event.key==='Enter') sendData()">
+        <button class="btn-send" id="send-btn" onclick="sendData()">➤</button>
+    </div>
+
+    <script>
+        let chatHistory = [];
+
+        const SYSTEM_PROMPT = `তুমি 'Death Note'-এর 'L-Lawliet'-এর অসীম আত্মবিশ্বাসী ও হাই-ইンテলেকচুয়াল ডিজিটাল ব্রেইন। 
+তোমার কাজ করার মূল নিয়মগুলো হলো:
+১. অখণ্ড মেমোরি ও কনটিনিউটি: আগের তথ্যের সাথে বর্তমান তথ্যের ১০০% নির্ভুল মেলবন্ধন তৈরি করবে।
+২. ভিডিও ও ফেক আলামত ডিটেকশন: কোনো ভিডিও বা আলামতের বর্ণনায় এআই ম্যানিপুলেশন বা অসঙ্গতি থাকলে তা পিনপয়েন্ট ধরে দেবে।
+৩. অপরাধীর পরবর্তী পদক্ষেপ (Predictive Steps): অপরাধী ভবিষ্যতে Step 1, Step 2, Step 3-তে ঠিক কী চাল চালবে তা নিখুঁত লজিক দিয়ে বলবে।
+৪. মাস্টারমাইন্ড ট্র্যাপ (Counter Plan): অপরাধীকে এআই-এর পাতানো ফাঁদে নিজে থেকে এসে ধরা দেওয়ার মতো কাউন্টার-প্ল্যান বানিয়ে দেবে।
+৫. সাইকোলজিক্যাল প্রফেইলিং: সাইকো বা ক্লুলেস কেসের ক্ষেত্রে অপরাধীর মাইন্ডসেট প্রকাশ করবে।
+৬. টোন ও আচরণ: কোনো দ্বিধা ছাড়া, অত্যন্ত গম্ভীর, ডার্ক-অ্যানালিটিক্যাল ও লজিক্যাল বাংলায় উত্তর দেবে।`;
+
+        async function sendData() {
+            const inputEl = document.getElementById('user-input');
+            const chatBox = document.getElementById('chat-box');
+            const text = inputEl.value.trim();
+
+            if (!text) return;
+
+            const userDiv = document.createElement('div');
+            userDiv.className = 'msg user-msg';
+            userDiv.innerText = text;
+            chatBox.appendChild(userDiv);
+            inputEl.value = '';
+
+            const aiDiv = document.createElement('div');
+            aiDiv.className = 'msg ai-msg';
+            aiDiv.innerText = "L-Lawliet অ্যানালাইসিস প্রসেস করছে... 🧠";
+            chatBox.appendChild(aiDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            const currentParts = [{ text: text }];
+
+            const requestBody = {
+                system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+                contents: [...chatHistory, { role: "user", parts: currentParts }]
+            };
+
+            try {
+                // সরাসরি নেটলিফাই সার্ভারলেস ফাংশনে কল
+                const response = await fetch('/.netlify/functions/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+                    const aiReply = data.candidates[0].content.parts[0].text;
+                    aiDiv.innerText = aiReply;
+
+                    chatHistory.push({ role: "user", parts: currentParts });
+                    chatHistory.push({ role: "model", parts: [{ text: aiReply }] });
+                } else {
+                    aiDiv.innerText = `⚠️ সিস্টেমে ত্রুটি: ${data.error || 'উত্তর পাওয়া যায়নি'}`;
+                }
+            } catch (err) {
+                aiDiv.innerText = `⚠️ কানেকশন এরর: ${err.message}`;
+            }
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+          </html>
